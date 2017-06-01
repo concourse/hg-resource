@@ -37,6 +37,7 @@ type HgChangeset struct {
 	Bookmarks []string `json:"bookmarks"`
 	Tags      []string `json:"tags"`
 	Parents   []string `json:"parents"`
+	Topic     []string `json:"topic"`
 }
 
 func (self *Repository) CloneOrPull(sourceUri string) ([]byte, error) {
@@ -293,6 +294,22 @@ func (self *Repository) Metadata(commitId string) (metadata []CommitProperty, er
 	}
 
 	metadata, err = parseMetadata(outBytes)
+
+	_, outBytes, err = self.run("log", []string{
+		"--cwd", self.Path,
+		"--rev", commitId,
+		"--template", "{topics}",
+	})
+	if err != nil {
+		err = fmt.Errorf("Error getting topic for commit %s: %s\n%s", commitId, err, string(outBytes))
+	}
+
+	metadata = append(metadata,
+		CommitProperty{
+			Name:  "topic",
+			Value: string(outBytes),
+		})
+
 	return
 }
 
@@ -344,6 +361,10 @@ func (commit *HgChangeset) toCommitProperties() (metadata []CommitProperty, err 
 		CommitProperty{
 			Name:  "tags",
 			Value: strings.Join(commit.Tags, ", "),
+		},
+		CommitProperty{
+			Name:  "bookmarks",
+			Value: strings.Join(commit.Bookmarks, ", "),
 		},
 	)
 
