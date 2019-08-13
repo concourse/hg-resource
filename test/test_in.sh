@@ -162,6 +162,35 @@ test_it_can_get_with_ssl_cert_checks_disabled() {
   sleep 0.1
 }
 
+test_it_ignores_obsolete() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit $repo)
+
+  local dest=$TMPDIR/destination
+
+  local expected1=$(echo "{\"ref\": $(echo $ref2 | jq -R .)}" | jq ".")
+  assertEquals "$expected1" "$(get_uri $repo $dest | jq '.version')"
+
+  if [ ! -e "$dest/some-file" ]; then
+    fail "expected some-file to exist in the working directory"
+  fi
+  assertEquals "$ref2" "$(get_working_dir_ref $dest)"
+
+  rm -rf $dest
+
+  # prune $ref2 and verify that concourse sees $ref1 as the tip
+  hg prune --cwd $repo $ref2
+
+  local expected2=$(echo "{\"ref\": $(echo $ref1 | jq -R .)}" | jq ".")
+  assertEquals "$expected2" "$(get_uri $repo $dest | jq '.version')"
+
+  if [ ! -e "$dest/some-file" ]; then
+    fail "expected some-file to exist in the working directory"
+  fi
+  assertEquals "$ref1" "$(get_working_dir_ref $dest)"
+}
+
 test_path_changed() {
   local repo1=$(init_repo)
   local repo1_ref=$(make_commit $repo1)

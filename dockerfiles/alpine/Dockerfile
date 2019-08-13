@@ -17,7 +17,14 @@ RUN apk add --update \
     jq \
     openssh \
     tar \
-    mercurial
+    python2 \
+    python2-dev \
+    py2-pip \
+    build-base
+
+RUN pip2 install mercurial
+RUN pip2 install hg-evolve
+
 COPY --from=builder /assets /opt/resource
 ADD assets/askpass.sh /opt/resource
 RUN chmod +x /opt/resource/*

@@ -15,8 +15,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       gnupg \
       jq \
       openssh-client \
-      mercurial \
-    && rm -rf /var/lib/apt/lists/*
+      python \
+      python-pip \
+      build-essential \
+      python-all-dev \
+      python-setuptools \
+      python-wheel \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip2 install mercurial \
+    && pip2 install hg-evolve
+
 COPY --from=builder /assets /opt/resource
 ADD assets/askpass.sh /opt/resource
 RUN chmod +x /opt/resource/*
