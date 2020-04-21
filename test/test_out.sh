@@ -276,9 +276,9 @@ test_it_tries_to_rebase_repeatedly_in_race_conditions() {
   assertEquals "$baseref1" "$grandparent_of_tip"
 }
 
-delete_repository_after_1_second() {
+delete_repository_after_2_second() {
   local repo=$1
-  sleep 1
+  sleep 2
   rm -r $repo
 }
 
@@ -296,7 +296,7 @@ test_it_aborts_on_unknown_push_errors() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  delete_repository_after_1_second $repo1 &
+  delete_repository_after_2_second $repo1 &
 
   local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX") 
   TEST_REPO_AT_REF_DIR="$rebased_repo"
