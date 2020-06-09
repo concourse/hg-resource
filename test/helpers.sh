@@ -466,6 +466,16 @@ get_uri_at_branch() {
   }" | ${resource_dir}/in "$3" | tee /dev/stderr
 }
 
+
+get_uri_omit_branch() {
+  jq -n "{
+    source: {
+      uri: $(echo $1 | jq -R .),
+      omit_branch: true
+    }
+  }" | ${resource_dir}/in "$2" | tee /dev/stderr
+}
+
 put_uri() {
   jq -n "{
     source: {

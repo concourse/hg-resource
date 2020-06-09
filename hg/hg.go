@@ -13,6 +13,7 @@ import (
 type Repository struct {
 	Path                string
 	Branch              string
+	OmitBranch          bool
 	IncludePaths        []string
 	ExcludePaths        []string
 	TagFilter           string
@@ -57,12 +58,18 @@ func (self *Repository) CloneOrPull(sourceUri string) ([]byte, error) {
 }
 
 func (self *Repository) clone(sourceUri string) (output []byte, err error) {
-	_, output, err = self.run("clone", []string{
+	args := []string{
 		"-q",
-		"--branch", self.Branch,
 		sourceUri,
 		self.Path,
-	})
+	}
+
+	if !self.OmitBranch {
+		args = append(args,
+			"--branch", self.Branch)
+	}
+
+	_, output, err = self.run("clone", args)
 	if err != nil {
 		err = fmt.Errorf("Error cloning repository from %s: %s", sourceUri, err)
 	}

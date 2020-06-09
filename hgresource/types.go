@@ -14,6 +14,7 @@ type Source struct {
 	IncludePaths        []string `json:"paths"`
 	ExcludePaths        []string `json:"ignore_paths"`
 	Branch              string   `json:"branch"`
+	OmitBranch          bool     `json:"omit_branch"`
 	TagFilter           string   `json:"tag_filter"`
 	RevSetFilter        string   `json:"revset_filter"`
 	SkipSslVerification bool     `json:"skip_ssl_verification"`

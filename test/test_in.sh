@@ -207,4 +207,22 @@ test_path_changed() {
   assertEquals "$expected2" "$(get_uri_at_ref $repo2 $repo2_ref $dest | jq '.version')"
 }
 
+test_it_ommits_branch() {
+  local repo=$(init_repo)
+  local ref1=$(make_commit $repo)
+  local ref2=$(make_commit_to_branch $repo branch1)
+  local ref3=$(make_commit_to_branch $repo branch2)
+
+  local dest=$TMPDIR/destination
+
+  # verify that default, branch1, and branch2 were pulled
+  local cloneExpected=$(echo "{\"ref\": $(echo $ref3 | jq -R .)}" | jq ".")
+  assertEquals "$cloneExpected" "$(get_uri_omit_branch $repo $dest | jq '.version')"
+
+  local ref4=$(make_commit_to_branch $repo branch3)
+
+  local pullExpected=$(echo "{\"ref\": $(echo $ref4 | jq -R .)}" | jq ".")
+  assertEquals "$pullExpected" "$(get_uri_omit_branch $repo $dest | jq '.version')"
+}
+
 source $(dirname $0)/shunit2

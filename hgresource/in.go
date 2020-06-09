@@ -21,6 +21,7 @@ func runIn(args []string, params *JsonInput, outWriter io.Writer, errWriter io.W
 	repo := &hg.Repository{
 		Path:                destination,
 		Branch:              params.Source.Branch,
+		OmitBranch:          params.Source.OmitBranch,
 		IncludePaths:        params.Source.IncludePaths,
 		ExcludePaths:        params.Source.ExcludePaths,
 		TagFilter:           params.Source.TagFilter,

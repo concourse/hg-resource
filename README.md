@@ -9,6 +9,8 @@ Tracks the commits in a [Mercurial](https://www.mercurial-scm.org/) repository.
 
 * `branch`: The branch to track, defaults to `default`.
 
+* `omit_branch`: If set to true, the entire repository history will be cloned. Defaults to false.
+
 * `private_key`: *Optional.* Private key to use when pulling/pushing.
     Example:
     ```
