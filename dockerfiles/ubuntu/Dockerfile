@@ -1,9 +1,13 @@
 FROM concourse/golang-builder as builder
-COPY . /go/src/github.com/concourse/hg-resource
+WORKDIR /src
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
 ENV CGO_ENABLED 0
-ENV GOPATH /go/src/github.com/concourse/hg-resource/Godeps/_workspace:${GOPATH}
-ENV PATH /go/src/github.com/concourse/hg-resource/Godeps/_workspace/bin:${PATH}
-RUN go build -o /assets/hgresource github.com/concourse/hg-resource/hgresource
+RUN go build -o /assets/hgresource ./hgresource
 RUN set -e; for pkg in $(go list ./...); do \
 		go test -o "/tests/$(basename $pkg).test" -c $pkg; \
 	done
