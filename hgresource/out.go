@@ -245,7 +245,7 @@ func getTempDirForCommit(commitId string) (string, error) {
 		return envOverride, nil
 	}
 
-	parentDir := getTempDir()
+	parentDir := os.TempDir()
 	prefix := "hg-repo-at-" + commitId
 	dirForCommit, err := ioutil.TempDir(parentDir, prefix)
 	if err != nil {

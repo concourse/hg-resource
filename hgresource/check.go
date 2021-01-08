@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/concourse/hg-resource/hg"
 	"io"
-	"path"
+	"os"
+	"path/filepath"
+
+	"github.com/concourse/hg-resource/hg"
 )
 
 const cmdCheckName string = "check"
@@ -17,7 +19,7 @@ var cmdCheck = &Command{
 
 func runCheck(args []string, params *JsonInput, outWriter io.Writer, errWriter io.Writer) int {
 	repo := hg.Repository{
-		Path:                getCacheDir(),
+		Path:                filepath.Join(os.TempDir(), "hg-resource-repo-cache"),
 		Branch:              params.Source.Branch,
 		IncludePaths:        params.Source.IncludePaths,
 		ExcludePaths:        params.Source.ExcludePaths,
@@ -49,10 +51,6 @@ func runCheck(args []string, params *JsonInput, outWriter io.Writer, errWriter i
 	}
 }
 
-func getCacheDir() string {
-	return path.Join(getTempDir(), "hg-resource-repo-cache")
-}
-
 func writeLatestCommit(repo *hg.Repository, outWriter io.Writer, errWriter io.Writer) int {
 	latestCommit, err := repo.GetLatestCommitId()
 	if err != nil {
@@ -61,7 +59,7 @@ func writeLatestCommit(repo *hg.Repository, outWriter io.Writer, errWriter io.Wr
 	}
 
 	latestVersion := []Version{
-		Version{
+		{
 			Ref: latestCommit,
 		},
 	}

@@ -226,7 +226,7 @@ test_it_fails_if_key_has_password() {
     fail "checking should have failed"
   fi
 
-  assertEquals "Error running ssh-add: Private keys with passphrases are not supported." "$(cat $failed_output)"
+  assertEquals "Private keys with passphrases are not supported." "$(cat $failed_output)"
 }
 
 test_it_can_check_with_tag_filter() {

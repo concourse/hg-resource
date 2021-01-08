@@ -30,7 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip2 install hg-evolve
 
 COPY --from=builder /assets /opt/resource
-ADD assets/askpass.sh /opt/resource
 RUN chmod +x /opt/resource/*
 RUN ln -s /opt/resource/hgresource /opt/resource/in; ln -s /opt/resource/hgresource /opt/resource/out; ln -s /opt/resource/hgresource /opt/resource/check
 ADD hgrc /etc/mercurial/hgrc
