@@ -51,11 +51,31 @@ func loadSshPrivateKey(privateKeyPem string) error {
 
 	sshClientConfigFile := path.Join(homeDir, sshClientConfigFileRelative)
 
+	err = mkSSHDir(sshClientConfigFile)
+	if err != nil {
+		return err
+	}
 	err = ioutil.WriteFile(sshClientConfigFile, []byte(sshClientConfig), 0600)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func mkSSHDir(sshClientConfigFile string) error {
+	sshDir := path.Dir(sshClientConfigFile)
+	_, pathErr := os.Stat(sshDir)
+	if pathErr != nil {
+		err := os.MkdirAll(sshDir, 0700)
+		if err != nil {
+			return fmt.Errorf("could not create .ssh dir: %s", err)
+		}
+		err = os.Chmod(sshDir, 0700)
+		if err != nil {
+			return fmt.Errorf("failed setting rights: %s", err)
+		}
+	}
 	return nil
 }
 
