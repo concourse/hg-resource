@@ -421,7 +421,7 @@ test_it_checks_ssl_certificates() {
 
   hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 5; kill $serve_pid) &
+  $(sleep 10; kill $serve_pid) &
 
   ! check_uri https://127.0.0.1:8000/ || fail "expected self-signed certificate to not be trusted"
   kill $serve_pid
@@ -434,7 +434,7 @@ test_it_can_disable_ssl_certificate_verification() {
 
   hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 5; kill $serve_pid) &
+  $(sleep 10; kill $serve_pid) &
 
   local expected=$(echo "[{\"ref\": $(echo $ref1 | jq -R .)}]"|jq ".")
   assertEquals "$expected" "$(check_uri_insecure https://127.0.0.1:8000/ | jq '.')"

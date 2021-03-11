@@ -322,7 +322,7 @@ test_it_checks_ssl_certificates() {
 
   hg serve --cwd $repo1 --config 'web.allow_push=*' --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 5; kill $serve_pid) &
+  $(sleep 10; kill $serve_pid) &
 
   ! put_uri https://localhost:8000/ $src repo || fail "expected self-signed certificate to not be trusted"
 
@@ -343,7 +343,7 @@ test_it_can_put_with_ssl_cert_checks_disabled() {
 
   hg serve --cwd $repo1 --config 'web.allow_push=*' --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 5; kill $serve_pid) &
+  $(sleep 10; kill $serve_pid) &
 
   put_uri_insecure https://localhost:8000/ $src repo | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
