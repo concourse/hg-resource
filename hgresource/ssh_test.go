@@ -52,11 +52,16 @@ var _ = Describe("Ssh", func() {
 		})
 	})
 
-	homeDir := "/tmp"
-	sshDir := path.Join(homeDir, ".ssh")
-	sshClientConfigFile := path.Join(homeDir, ".ssh/config")
-
 	Context("When configuring ssh", func() {
+		homeDir := "/tmp"
+		sshDir := path.Join(homeDir, ".ssh")
+		sshClientConfigFile := path.Join(homeDir, ".ssh/config")
+
+		AfterEach(func() {
+			// cleanup
+			err := os.RemoveAll(sshDir)
+			Expect(err).To(BeNil())
+		})
 		It("can crete the directory", func() {
 
 			// ensure the directory doesn't exists
@@ -69,10 +74,6 @@ var _ = Describe("Ssh", func() {
 			// check that the directory now exists
 			_, resultErr := os.Stat(sshDir)
 			Expect(resultErr).To(BeNil())
-
-			// cleanup
-			err = os.RemoveAll(sshDir)
-			Expect(err).To(BeNil())
 		})
 		It("can ignores when the directory already exists", func() {
 
@@ -81,10 +82,6 @@ var _ = Describe("Ssh", func() {
 			Expect(sshDirErr).To(BeNil())
 
 			err := mkSSHDir(sshClientConfigFile)
-			Expect(err).To(BeNil())
-
-			// cleanup
-			err = os.RemoveAll(sshDir)
 			Expect(err).To(BeNil())
 		})
 
