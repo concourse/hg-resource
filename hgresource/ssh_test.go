@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path"
 	"strconv"
 	"syscall"
 
@@ -49,5 +50,43 @@ var _ = Describe("Ssh", func() {
 				return processExists(pid)
 			}).Should(BeFalse())
 		})
+	})
+
+	homeDir := "/tmp"
+	sshDir := path.Join(homeDir, ".ssh")
+	sshClientConfigFile := path.Join(homeDir, ".ssh/config")
+
+	Context("When configuring ssh", func() {
+		It("can crete the directory", func() {
+
+			// ensure the directory doesn't exists
+			_, sshDirErr := os.Stat(sshDir)
+			Expect(sshDirErr).NotTo(BeNil())
+
+			err := mkSSHDir(sshClientConfigFile)
+			Expect(err).To(BeNil())
+
+			// check that the directory now exists
+			_, resultErr := os.Stat(sshDir)
+			Expect(resultErr).To(BeNil())
+
+			// cleanup
+			err = os.RemoveAll(sshDir)
+			Expect(err).To(BeNil())
+		})
+		It("can ignores when the directory already exists", func() {
+
+			// make sure the directory already exists
+			sshDirErr := os.MkdirAll(sshDir, 0700)
+			Expect(sshDirErr).To(BeNil())
+
+			err := mkSSHDir(sshClientConfigFile)
+			Expect(err).To(BeNil())
+
+			// cleanup
+			err = os.RemoveAll(sshDir)
+			Expect(err).To(BeNil())
+		})
+
 	})
 })
