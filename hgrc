@@ -1,8 +1,0 @@
-[ui]
-username = User Name <user@example.com>
-
-[phases]
-publish = false
-
-[extensions]
-evolve =
