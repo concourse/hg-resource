@@ -1,13 +1,11 @@
-ARG base_image=alpine:latest
+ARG base_image=ubuntu:latest
 ARG builder_image=concourse/golang-builder
 
 FROM ${builder_image} as builder
 WORKDIR /src
-
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
-
 COPY . .
 ENV CGO_ENABLED 0
 RUN go build -o /assets/hgresource ./hgresource
@@ -16,22 +14,24 @@ RUN set -e; for pkg in $(go list ./...); do \
 	done
 
 FROM ${base_image} AS resource
-RUN apk update && apk upgrade
-RUN apk add --update \
-    bash \
-    curl \
-    gnupg \
-    gzip \
-    jq \
-    openssh \
-    tar \
-    python3 \
-    python3-dev \
-    py3-pip \
-    build-base
+USER root
+RUN apt update && apt upgrade -y -o Dpkg::Options::="--force-confdef"
+RUN apt update && apt install -y --no-install-recommends \
+      curl \
+      ca-certificates \
+      gnupg \
+      jq \
+      openssh-client \
+      python3 \
+      python3-pip \
+      build-essential \
+      python3-all-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install mercurial \
+    && pip3 install hg-evolve \
+    && pip3 install wheel \
+    && pip3 install setuptools
 
-RUN pip3 install mercurial
-RUN pip3 install hg-evolve
 
 COPY --from=builder /assets /opt/resource
 RUN chmod +x /opt/resource/*
