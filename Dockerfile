@@ -25,12 +25,10 @@ RUN apt update && apt install -y --no-install-recommends \
       python3 \
       python3-pip \
       build-essential \
-      python3-all-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip3 install mercurial \
-    && pip3 install hg-evolve \
-    && pip3 install wheel \
-    && pip3 install setuptools
+      python3-all-dev
+RUN pip3 install mercurial hg-evolve wheel setuptools
+RUN apt remove -y python3-wheel python3-setuptools \
+    && rm -rf /var/lib/apt/lists/*
 
 
 COPY --from=builder /assets /opt/resource
