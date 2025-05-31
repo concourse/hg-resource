@@ -2,6 +2,10 @@
 
 Tracks the commits in a [Mercurial](https://www.mercurial-scm.org/) repository.
 
+<a href="https://ci.concourse-ci.org/teams/main/pipelines/resource/jobs/build?vars.type=%22hg%22">
+  <img src="https://ci.concourse-ci.org/api/v1/teams/main/pipelines/resource/jobs/build/badge?vars.type=%22hg%22" alt="Build Status">
+</a>
+
 
 ## Source Configuration
 
