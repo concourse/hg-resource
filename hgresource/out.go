@@ -116,10 +116,11 @@ func rebaseAndPush(tempRepo *hg.Repository, params PushParams, maxRetries int, e
 			fmt.Fprintln(errWriter, "pushed")
 			return
 		}
-		if !isNonFastForwardError(string(output)) {
-			fmt.Fprintln(errWriter, "failed with non-rebase error")
-			return
+		if isNonFastForwardError(string(output)) {
+			continue
 		}
+		fmt.Fprintln(errWriter, "failed with non-rebase error")
+		return
 	}
 	err = fmt.Errorf("Error: too many retries")
 	return
