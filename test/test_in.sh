@@ -99,8 +99,8 @@ test_it_returns_metadata() {
       {\"name\": \"message\", \"value\": \"test message\", \"type\": \"message\"},
       {\"name\": \"tags\", \"value\": \"tip\"}
     ]" | jq ".")
- 
-  assertEquals "$expected" "$(get_uri $repo $dest | jq '.metadata')"  
+
+  assertEquals "$expected" "$(get_uri $repo $dest | jq '.metadata')"
 }
 
 test_it_updates_subrepositories() {
@@ -133,10 +133,11 @@ test_it_checks_ssl_certificates() {
 
   hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 10; kill $serve_pid) &
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
 
   ! get_uri https://127.0.0.1:8000/ $dest || fail "expected self-signed certificate to not be trusted"
 
+  trap - EXIT
   kill $serve_pid
   sleep 0.1
 }
@@ -148,7 +149,7 @@ test_it_can_get_with_ssl_cert_checks_disabled() {
 
   hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 10; kill $serve_pid) &
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
 
   local expected=$(echo "{\"ref\": $(echo $ref | jq -R .)}" | jq ".")
   assertEquals "$expected" "$(get_uri_insecure https://127.0.0.1:8000/ $dest | jq '.version')"
@@ -158,6 +159,7 @@ test_it_can_get_with_ssl_cert_checks_disabled() {
   fi
   assertEquals "$ref" "$(get_working_dir_ref $dest)"
 
+  trap - EXIT
   kill $serve_pid
   sleep 0.1
 }

@@ -18,7 +18,7 @@ assertTaggedCommitAtTip() {
   local parent_commit=$(hg log --cwd "$dest" --rev "${commit_id}^" --template '{node}')
 
   assertEquals "$expected_commit_id" "$parent_commit"
-  
+
   local changed_files=$(hg log --cwd "$dest" --rev "$commit_id" --template '{files}')
   assertEquals ".hgtags" "$changed_files"
 }
@@ -171,7 +171,7 @@ test_it_can_put_to_url_with_rebase_with_tag() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX") 
+  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX")
   TEST_REPO_AT_REF_DIR="$rebased_repo"
   export TEST_REPO_AT_REF_DIR
   put_uri_with_rebase_with_tag $repo1 $src some-tag-file repo > $response
@@ -211,7 +211,7 @@ test_it_can_put_to_url_with_rebase_with_tag_and_prefix() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX") 
+  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX")
   TEST_REPO_AT_REF_DIR="$rebased_repo"
   export TEST_REPO_AT_REF_DIR
   put_uri_with_rebase_with_tag_and_prefix $repo1 $src some-tag-file v repo > $response
@@ -250,7 +250,7 @@ test_it_tries_to_rebase_repeatedly_in_race_conditions() {
   background_commit_id_file=$(mktemp /tmp/hg-commit-id.XXXXXX)
   make_commit_after_1_second $repo1 > $background_commit_id_file &
 
-  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX") 
+  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX")
   TEST_REPO_AT_REF_DIR="$rebased_repo"
   export TEST_REPO_AT_REF_DIR
   put_uri_with_rebase_and_race_conditions $repo1 $src repo > $response
@@ -276,9 +276,16 @@ test_it_tries_to_rebase_repeatedly_in_race_conditions() {
   assertEquals "$baseref1" "$grandparent_of_tip"
 }
 
-delete_repository_after_2_second() {
+delete_repository_after_hg_pull() {
   local repo=$1
-  sleep 2
+  # wait for hg pull to start
+  while ! ps aux | grep -v grep | grep -q "hg pull"; do
+    sleep 0.1
+  done
+  # wait for hg pull to end
+  while ps aux | grep -v grep | grep -q "hg pull"; do
+    sleep 0.1
+  done
   rm -r $repo
 }
 
@@ -296,9 +303,9 @@ test_it_aborts_on_unknown_push_errors() {
 
   local response=$(mktemp $TMPDIR/rebased-response.XXXXXX)
 
-  delete_repository_after_2_second $repo1 &
+  delete_repository_after_hg_pull $repo1 &
 
-  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX") 
+  local rebased_repo=$(mktemp -d "$TMPDIR/hg-repo-at-$ref.XXXXXX")
   TEST_REPO_AT_REF_DIR="$rebased_repo"
   export TEST_REPO_AT_REF_DIR
   ! put_uri_with_rebase_and_race_conditions $repo1 $src repo &> $response || fail "expected 'out' to have a non-zero exit code"
@@ -322,10 +329,11 @@ test_it_checks_ssl_certificates() {
 
   hg serve --cwd $repo1 --config 'web.allow_push=*' --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 10; kill $serve_pid) &
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
 
   ! put_uri https://localhost:8000/ $src repo || fail "expected self-signed certificate to not be trusted"
 
+  trap - EXIT
   kill $serve_pid
   sleep 0.1
 }
@@ -343,7 +351,7 @@ test_it_can_put_with_ssl_cert_checks_disabled() {
 
   hg serve --cwd $repo1 --config 'web.allow_push=*' --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 10; kill $serve_pid) &
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
 
   put_uri_insecure https://localhost:8000/ $src repo | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
@@ -357,6 +365,7 @@ test_it_can_put_with_ssl_cert_checks_disabled() {
   local actual_commit_id_of_tag=$(hg log --cwd "$repo1" --limit 1 --rev some-tag --template '{node}')
   assertEquals "$tagged_commit" "$actual_commit_id_of_tag"
 
+  trap - EXIT
   kill $serve_pid
   sleep 0.1
 }
