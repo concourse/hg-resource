@@ -34,7 +34,7 @@ test_it_can_check_from_a_bogus_sha() {
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit $repo)
 
-  local expected=$(echo "[{\"ref\": $(echo $ref2 | jq -R .)}]"|jq ".") 
+  local expected=$(echo "[{\"ref\": $(echo $ref2 | jq -R .)}]"|jq ".")
   assertEquals "$expected" "$(check_uri_from $repo bogus-ref | jq '.')"
 }
 
@@ -195,9 +195,9 @@ test_it_skips_marked_commits() {
   local ref1=$(make_commit $repo)
   local ref2=$(make_commit_to_be_skipped $repo)
   local ref3=$(make_commit $repo)
-   
+
   local expected=$(echo "[{\"ref\": $(echo $ref3 | jq -R .)}]" | jq ".")
-  
+
   assertEquals "$expected" "$(check_uri_from $repo $ref1 | jq '.')"
 }
 
@@ -283,10 +283,10 @@ test_it_can_check_from_head_only_fetching_single_branch() {
   local repo=$(init_repo)
   local ref=$(make_commit $repo)
   local cachedir="$TMPDIR/hg-resource-repo-cache"
-  
+
   local expected=$(echo "[{\"ref\": $(echo $ref | jq -R .)}]" | jq ".")
   assertEquals "$expected" "$(check_uri $repo | jq '.')"
-  
+
   ! check_branch_exists "$cachedir" bogus || fail "branch was fetched, expected it to not exist locally"
 }
 
@@ -421,9 +421,10 @@ test_it_checks_ssl_certificates() {
 
   hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 10; kill $serve_pid) &
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
 
   ! check_uri https://127.0.0.1:8000/ || fail "expected self-signed certificate to not be trusted"
+  trap - EXIT
   kill $serve_pid
   sleep 0.1
 }
@@ -434,11 +435,12 @@ test_it_can_disable_ssl_certificate_verification() {
 
   hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
   serve_pid=$!
-  $(sleep 10; kill $serve_pid) &
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
 
   local expected=$(echo "[{\"ref\": $(echo $ref1 | jq -R .)}]"|jq ".")
   assertEquals "$expected" "$(check_uri_insecure https://127.0.0.1:8000/ | jq '.')"
 
+  trap - EXIT
   kill $serve_pid
   sleep 0.1
 }
