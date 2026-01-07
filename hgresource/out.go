@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -84,7 +83,7 @@ func runOut(args []string, input *JsonInput, outWriter io.Writer, errWriter io.W
 }
 
 func rebaseAndPush(tempRepo *hg.Repository, params PushParams, maxRetries int, errWriter io.Writer) (jsonOutput JsonOutput, err error) {
-	for pushAttempt := 0; pushAttempt < maxRetries; pushAttempt++ {
+	for pushAttempt := range maxRetries {
 		var output []byte
 		fmt.Fprintf(errWriter, "rebasing, attempt %d/%d...\n", pushAttempt+1, maxRetries)
 		output, err = tempRepo.PullWithRebase(params.DestUri, params.Branch)
@@ -151,8 +150,8 @@ func getJsonOutputForCurrentCommit(repo *hg.Repository) (output JsonOutput, err 
 }
 
 func isNonFastForwardError(hgStderr string) bool {
-	lines := strings.Split(hgStderr, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(hgStderr, "\n")
+	for line := range lines {
 		if strings.HasPrefix(line, "abort: push creates new remote head") {
 			return true
 		}
@@ -229,7 +228,7 @@ func validateInput(input *JsonInput, sourceDir string) (validated PushParams, er
 		}
 
 		var tagFileContent []byte
-		tagFileContent, err = ioutil.ReadFile(tagFile)
+		tagFileContent, err = os.ReadFile(tagFile)
 		if err != nil {
 			err = fmt.Errorf("Error reading tag file '%s': %s\n", tagFile, err)
 			return
@@ -248,7 +247,7 @@ func getTempDirForCommit(commitId string) (string, error) {
 
 	parentDir := os.TempDir()
 	prefix := "hg-repo-at-" + commitId
-	dirForCommit, err := ioutil.TempDir(parentDir, prefix)
+	dirForCommit, err := os.MkdirTemp(parentDir, prefix)
 	if err != nil {
 		return "", fmt.Errorf("Unable to create temp dir to clone into: %s", err)
 	}
