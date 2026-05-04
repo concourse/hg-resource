@@ -131,15 +131,11 @@ test_it_checks_ssl_certificates() {
   local ref=$(make_commit $repo)
   local dest=$TMPDIR/destination
 
-  hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
-  serve_pid=$!
-  trap "kill $serve_pid 2>/dev/null || true" EXIT
+  start_hg_serve --cwd $repo
 
   ! get_uri https://127.0.0.1:8000/ $dest || fail "expected self-signed certificate to not be trusted"
 
-  trap - EXIT
-  kill $serve_pid
-  sleep 0.1
+  stop_hg_serve
 }
 
 test_it_can_get_with_ssl_cert_checks_disabled() {
@@ -147,9 +143,7 @@ test_it_can_get_with_ssl_cert_checks_disabled() {
   local ref=$(make_commit $repo)
   local dest=$TMPDIR/destination
 
-  hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
-  serve_pid=$!
-  trap "kill $serve_pid 2>/dev/null || true" EXIT
+  start_hg_serve --cwd $repo
 
   local expected=$(echo "{\"ref\": $(echo $ref | jq -R .)}" | jq ".")
   assertEquals "$expected" "$(get_uri_insecure https://127.0.0.1:8000/ $dest | jq '.version')"
@@ -159,9 +153,7 @@ test_it_can_get_with_ssl_cert_checks_disabled() {
   fi
   assertEquals "$ref" "$(get_working_dir_ref $dest)"
 
-  trap - EXIT
-  kill $serve_pid
-  sleep 0.1
+  stop_hg_serve
 }
 
 test_it_ignores_obsolete() {

@@ -620,3 +620,23 @@ put_uri_with_rebase_with_tag_and_prefix() {
     }
   }" | ${resource_dir}/out "$2" | tee /dev/stderr
 }
+
+start_hg_serve() {
+  hg serve --address 127.0.0.1 --port 8000 --certificate $CERT "$@" &
+  serve_pid=$!
+  trap "kill $serve_pid 2>/dev/null || true" EXIT
+
+  local retries=50
+  while ! (exec 3<>/dev/tcp/127.0.0.1/8000) 2>/dev/null && [ $retries -gt 0 ]; do
+    sleep 0.1
+    retries=$((retries - 1))
+  done
+  exec 3<&- 3>&- 2>/dev/null || true
+  [ $retries -gt 0 ] || fail "hg serve did not start listening on 127.0.0.1:8000"
+}
+
+stop_hg_serve() {
+  trap - EXIT
+  kill $serve_pid 2>/dev/null || true
+  wait $serve_pid 2>/dev/null || true
+}

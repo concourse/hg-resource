@@ -327,15 +327,11 @@ test_it_checks_ssl_certificates() {
   # create a tag to push
   local ref=$(make_tag $repo2 some-tag)
 
-  hg serve --cwd $repo1 --config 'web.allow_push=*' --address 127.0.0.1 --port 8000 --certificate $CERT &
-  serve_pid=$!
-  trap "kill $serve_pid 2>/dev/null || true" EXIT
+  start_hg_serve --cwd $repo1 --config 'web.allow_push=*'
 
   ! put_uri https://localhost:8000/ $src repo || fail "expected self-signed certificate to not be trusted"
 
-  trap - EXIT
-  kill $serve_pid
-  sleep 0.1
+  stop_hg_serve
 }
 
 test_it_can_put_with_ssl_cert_checks_disabled() {
@@ -349,9 +345,7 @@ test_it_can_put_with_ssl_cert_checks_disabled() {
   # create a tag to push
   local ref=$(make_tag $repo2 some-tag)
 
-  hg serve --cwd $repo1 --config 'web.allow_push=*' --address 127.0.0.1 --port 8000 --certificate $CERT &
-  serve_pid=$!
-  trap "kill $serve_pid 2>/dev/null || true" EXIT
+  start_hg_serve --cwd $repo1 --config 'web.allow_push=*'
 
   put_uri_insecure https://localhost:8000/ $src repo | jq -e "
     .version == {ref: $(echo $ref | jq -R .)}
@@ -365,9 +359,7 @@ test_it_can_put_with_ssl_cert_checks_disabled() {
   local actual_commit_id_of_tag=$(hg log --cwd "$repo1" --limit 1 --rev some-tag --template '{node}')
   assertEquals "$tagged_commit" "$actual_commit_id_of_tag"
 
-  trap - EXIT
-  kill $serve_pid
-  sleep 0.1
+  stop_hg_serve
 }
 
 source $(dirname $0)/shunit2

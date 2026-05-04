@@ -419,30 +419,23 @@ test_it_checks_ssl_certificates() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
 
-  hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
-  serve_pid=$!
-  trap "kill $serve_pid 2>/dev/null || true" EXIT
+  start_hg_serve --cwd $repo
 
   ! check_uri https://127.0.0.1:8000/ || fail "expected self-signed certificate to not be trusted"
-  trap - EXIT
-  kill $serve_pid
-  sleep 0.1
+
+  stop_hg_serve
 }
 
 test_it_can_disable_ssl_certificate_verification() {
   local repo=$(init_repo)
   local ref1=$(make_commit $repo)
 
-  hg serve --cwd $repo --address 127.0.0.1 --port 8000 --certificate $CERT &
-  serve_pid=$!
-  trap "kill $serve_pid 2>/dev/null || true" EXIT
+  start_hg_serve --cwd $repo
 
   local expected=$(echo "[{\"ref\": $(echo $ref1 | jq -R .)}]"|jq ".")
   assertEquals "$expected" "$(check_uri_insecure https://127.0.0.1:8000/ | jq '.')"
 
-  trap - EXIT
-  kill $serve_pid
-  sleep 0.1
+  stop_hg_serve
 }
 
 source $(dirname $0)/shunit2
