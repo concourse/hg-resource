@@ -20,12 +20,12 @@ RUN set -e; for pkg in $(go list ./...); do \
 
 FROM ${base_image} AS resource
 RUN apk --no-cache add \
-    cmd:hg \
+    mercurial \
     ca-certificates \
     gnupg \
     openssh-client \
     python3-dev \
-    cmd:pip3
+    py-pip3
 
 RUN pip3 install hg-evolve
 COPY --from=builder /assets /opt/resource
@@ -34,7 +34,7 @@ RUN ln -s /opt/resource/hgresource /opt/resource/in; ln -s /opt/resource/hgresou
 COPY hgrc /etc/mercurial/hgrc
 
 FROM resource AS tests
-RUN apk --no-cache add bash jq cmd:ssh-keygen
+RUN apk --no-cache add bash jq openssh-keygen
 COPY --from=builder /tests /go-tests
 RUN set -e; for test in /go-tests/*.test; do \
     $test; \
