@@ -25,7 +25,7 @@ RUN apk --no-cache add \
     gnupg \
     openssh-client \
     python3-dev \
-    py-pip3
+    py3-pip
 
 RUN pip3 install hg-evolve
 COPY --from=builder /assets /opt/resource
